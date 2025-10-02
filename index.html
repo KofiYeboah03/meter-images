@@ -97,18 +97,30 @@
             color: #333;
         }
 
-        input[type="text"] {
+        input[type="text"],
+        select {
             width: 100%;
             padding: 15px;
             border: 2px solid #ddd;
             border-radius: 10px;
             font-size: 16px;
             transition: border-color 0.3s ease;
+            background: white;
         }
 
-        input[type="text"]:focus {
+        input[type="text"]:focus,
+        select:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
         }
 
         .upload-btn {
@@ -240,6 +252,34 @@
         <div class="preview-area" id="previewArea"></div>
 
         <div class="form-group">
+            <label for="contractor">Farming Out Contractor:</label>
+            <select id="contractor" required onchange="updateUploadButton()">
+                <option value="">-- Select Contractor --</option>
+                <option value="YEGBE">YEGBE</option>
+                <option value="BERTH">BERTH</option>
+                <option value="MINYA">MINYA</option>
+                <option value="OTUP">OTUP</option>
+                <option value="NAADEEABLE">NAADEEABLE</option>
+                <option value="KOSMEN">KOSMEN</option>
+                <option value="HIMK">HIMK</option>
+                <option value="MEGA">MEGA</option>
+                <option value="SIMVID">SIMVID</option>
+                <option value="JACKCON">JACKCON</option>
+                <option value="EDEN - ROSAMART">EDEN - ROSAMART</option>
+                <option value="PRESTIGE">PRESTIGE</option>
+                <option value="OHEMEN">OHEMEN</option>
+                <option value="ANDYMARK">ANDYMARK</option>
+                <option value="IONIC">IONIC</option>
+                <option value="THONY AJ">THONY AJ</option>
+                <option value="WENDYDAM">WENDYDAM</option>
+                <option value="NAKOBUA">NAKOBUA</option>
+                <option value="SIR CHARLES">SIR CHARLES</option>
+                <option value="WESTPOOL">WESTPOOL</option>
+                <option value="WESTVIDAM">WESTVIDAM</option>
+            </select>
+        </div>
+
+        <div class="form-group">
             <label for="meterNumber">Meter Number:</label>
             <input type="text" id="meterNumber" placeholder="Enter meter number" required>
         </div>
@@ -326,10 +366,11 @@
         }
 
         function updateUploadButton() {
+            const contractor = document.getElementById('contractor').value;
             const meterNumber = document.getElementById('meterNumber').value.trim();
             const uploadBtn = document.getElementById('uploadBtn');
             
-            if (selectedFile && meterNumber) {
+            if (selectedFile && contractor && meterNumber) {
                 uploadBtn.disabled = false;
             } else {
                 uploadBtn.disabled = true;
@@ -342,12 +383,18 @@
         async function uploadImage() {
             if (!selectedFile) return;
             
+            const contractor = document.getElementById('contractor').value;
             const meterNumber = document.getElementById('meterNumber').value.trim();
             const token = localStorage.getItem('githubToken');
             const repo = localStorage.getItem('repoPath');
             
             if (!token || !repo) {
                 showStatus('Please configure GitHub settings first.', 'error');
+                return;
+            }
+            
+            if (!contractor) {
+                showStatus('Please select a contractor.', 'error');
                 return;
             }
             
@@ -364,10 +411,11 @@
                 const base64 = await fileToBase64(selectedFile);
                 const base64Content = base64.split(',')[1]; // Remove data:image/jpeg;base64, prefix
                 
-                // Generate filename
+                // Generate filename with contractor prefix
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
                 const extension = selectedFile.name.split('.').pop().toLowerCase();
-                const filename = `${meterNumber}_${timestamp}.${extension}`;
+                const contractorPrefix = contractor.replace(' - ', '_').replace(' ', '_');
+                const filename = `${contractorPrefix}_${meterNumber}_${timestamp}.${extension}`;
                 
                 // Upload to GitHub
                 const response = await fetch(`https://api.github.com/repos/${repo}/contents/incoming/${filename}`, {
@@ -377,17 +425,18 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        message: `Upload meter image: ${filename}`,
+                        message: `Upload meter image: ${contractor} - ${meterNumber}`,
                         content: base64Content
                     })
                 });
 
                 if (response.ok) {
-                    showStatus(`Image uploaded successfully as ${filename}!`, 'success');
+                    showStatus(`Image uploaded successfully!\nContractor: ${contractor}\nMeter: ${meterNumber}`, 'success');
                     
                     // Reset form
                     selectedFile = null;
                     document.getElementById('fileInput').value = '';
+                    document.getElementById('contractor').value = '';
                     document.getElementById('meterNumber').value = '';
                     document.getElementById('previewArea').innerHTML = '';
                     
@@ -417,6 +466,7 @@
             const statusDiv = document.getElementById('status');
             statusDiv.textContent = message;
             statusDiv.className = `status ${type}`;
+            statusDiv.style.whiteSpace = 'pre-line';
             
             if (type === 'success') {
                 setTimeout(() => {
