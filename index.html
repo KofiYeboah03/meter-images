@@ -55,7 +55,12 @@
             opacity: 0.9;
         }
 
-        .upload-btn-header {
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .upload-btn-header, .settings-btn {
             background: rgba(255, 255, 255, 0.2);
             color: white;
             border: none;
@@ -70,7 +75,7 @@
             transition: background 0.2s;
         }
 
-        .upload-btn-header:hover {
+        .upload-btn-header:hover, .settings-btn:hover {
             background: rgba(255, 255, 255, 0.3);
         }
 
@@ -105,6 +110,31 @@
             font-weight: 500;
         }
 
+        .config-card {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .config-card.success {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .config-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .config-header h3 {
+            font-size: 16px;
+            color: #333;
+        }
+
         .form-card {
             background: white;
             border-radius: 12px;
@@ -132,6 +162,11 @@
             border-color: #2d7a3e;
             background: #e8f5e9;
             transform: scale(1.01);
+        }
+
+        .upload-area.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .camera-icon {
@@ -172,6 +207,11 @@
             background: #256332;
         }
 
+        .camera-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
         .form-group {
             margin-bottom: 25px;
         }
@@ -184,7 +224,7 @@
             margin-bottom: 8px;
         }
 
-        select, input[type="text"] {
+        select, input[type="text"], input[type="password"] {
             width: 100%;
             padding: 13px 16px;
             border: 1px solid #d1d5db;
@@ -195,7 +235,7 @@
             transition: all 0.2s;
         }
 
-        select:focus, input[type="text"]:focus {
+        select:focus, input[type="text"]:focus, input[type="password"]:focus {
             outline: none;
             border-color: #2d7a3e;
             box-shadow: 0 0 0 3px rgba(45, 122, 62, 0.1);
@@ -275,6 +315,87 @@
             border: 1px solid #93c5fd;
         }
 
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .btn-primary {
+            background: #2d7a3e;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 500;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: #256332;
+        }
+
+        .help-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .header {
                 padding: 15px 20px;
@@ -284,7 +405,11 @@
                 flex: 1;
             }
 
-            .upload-btn-header {
+            .header-buttons {
+                flex-direction: column;
+            }
+
+            .upload-btn-header, .settings-btn {
                 padding: 8px 12px;
                 font-size: 13px;
             }
@@ -312,13 +437,18 @@
         <div class="header-left">
             <div class="logo"></div>
             <div class="header-title">
-                <h1>Salpond Final Reading Image Upload</h1>
-                <p>Retired Meters Proper</p>
+                <h1>Salpond Final Readings Image Upload</h1>
+                <p>Retired Meter Upload Proper*</p>
             </div>
         </div>
-        <button class="upload-btn-header" onclick="scrollToUpload()">
-            ⬆ Upload Meter Image
-        </button>
+        <div class="header-buttons">
+            <button class="settings-btn" onclick="openSettings()">
+                 Settings
+            </button>
+            <button class="upload-btn-header" onclick="scrollToUpload()">
+                Go ahead and upload image
+            </button>
+        </div>
     </div>
 
     <div class="container">
@@ -330,15 +460,23 @@
             <span class="home">Home</span> › Meter Image Upload
         </div>
 
+        <div id="configAlert" class="config-card">
+            <div class="config-header">
+                <span style="font-size: 24px;"></span>
+                <h3>Setup Required</h3>
+            </div>
+            <p>Kindly enter GitHub token in Settings before uploading images.</p>
+        </div>
+
         <div class="form-card" id="uploadSection">
-            <div class="upload-area" onclick="document.getElementById('fileInput').click()" 
+            <div class="upload-area" id="uploadArea" onclick="handleUploadClick()" 
                  ondragover="event.preventDefault(); this.classList.add('dragover')" 
                  ondragleave="this.classList.remove('dragover')"
                  ondrop="handleDrop(event)">
                 <div class="camera-icon">📷</div>
                 <div class="upload-text">Tap to take photo or select image</div>
                 <div class="upload-subtext">Drag and drop your image here</div>
-                <button class="camera-btn" type="button">Choose Image</button>
+                <button class="camera-btn" type="button" id="cameraBtn">Choose Image</button>
             </div>
 
             <input type="file" id="fileInput" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
@@ -386,15 +524,110 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Settings</h3>
+                <button class="close-btn" onclick="closeSettings()">×</button>
+            </div>
+
+            <div class="form-group">
+                <label for="githubToken">GitHub Personal Access Token:</label>
+                <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxx">
+                <div class="help-text">
+                    Generate at: <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens/new</a><br>
+                    Required permission: <strong>repo</strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Repository:</label>
+                <input type="text" value="kofiyeboah03/meter-images" disabled style="background: #f5f5f5;">
+                <div class="help-text">Repository is pre-configured</div>
+            </div>
+
+            <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+    </div>
+
     <script>
-        // Hardcoded GitHub credentials
-        const GITHUB_TOKEN = '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';
+        // Hardcoded repository name
         const GITHUB_REPO = 'kofiyeboah03/meter-images';
         
         let selectedFile = null;
+        let githubToken = null;
+
+        // Load saved token on page load
+        window.onload = function() {
+            loadToken();
+            updateUIState();
+        };
+
+        function loadToken() {
+            const savedToken = localStorage.getItem('githubToken');
+            if (savedToken) {
+                githubToken = savedToken;
+                document.getElementById('githubToken').value = savedToken;
+            }
+        }
+
+        function updateUIState() {
+            const configAlert = document.getElementById('configAlert');
+            const uploadArea = document.getElementById('uploadArea');
+            const cameraBtn = document.getElementById('cameraBtn');
+            
+            if (githubToken) {
+                configAlert.className = 'config-card success hidden';
+                uploadArea.classList.remove('disabled');
+                cameraBtn.disabled = false;
+            } else {
+                configAlert.className = 'config-card';
+                uploadArea.classList.add('disabled');
+                cameraBtn.disabled = true;
+            }
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function saveSettings() {
+            const token = document.getElementById('githubToken').value.trim();
+            
+            if (!token) {
+                showStatus('Please enter a GitHub token.', 'error');
+                return;
+            }
+
+            if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+                showStatus('Invalid token format. Token should start with ghp_ or github_pat_', 'error');
+                return;
+            }
+
+            localStorage.setItem('githubToken', token);
+            githubToken = token;
+            
+            showStatus('Settings saved successfully!', 'success');
+            updateUIState();
+            closeSettings();
+        }
 
         function scrollToUpload() {
             document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleUploadClick() {
+            if (githubToken) {
+                document.getElementById('fileInput').click();
+            } else {
+                showStatus('Please configure your GitHub token in Settings first.', 'error');
+                openSettings();
+            }
         }
 
         function handleFileSelect(event) {
@@ -409,6 +642,12 @@
         function handleDrop(event) {
             event.preventDefault();
             event.target.classList.remove('dragover');
+            
+            if (!githubToken) {
+                showStatus('Please configure your GitHub token in Settings first.', 'error');
+                openSettings();
+                return;
+            }
             
             const files = event.dataTransfer.files;
             if (files.length > 0 && files[0].type.startsWith('image/')) {
@@ -433,7 +672,7 @@
             const meterNumber = document.getElementById('meterNumber').value.trim();
             const submitBtn = document.getElementById('submitBtn');
             
-            if (selectedFile && contractor && meterNumber) {
+            if (selectedFile && contractor && meterNumber && githubToken) {
                 submitBtn.disabled = false;
             } else {
                 submitBtn.disabled = true;
@@ -442,6 +681,12 @@
 
         async function uploadImage() {
             if (!selectedFile) return;
+            
+            if (!githubToken) {
+                showStatus('Please configure your GitHub token in Settings first.', 'error');
+                openSettings();
+                return;
+            }
             
             const contractor = document.getElementById('contractor').value;
             const meterNumber = document.getElementById('meterNumber').value.trim();
@@ -471,7 +716,7 @@
                 const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/incoming/${filename}`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Authorization': `token ${githubToken}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
@@ -491,7 +736,14 @@
                     
                 } else {
                     const errorData = await response.json();
-                    throw new Error(errorData.message || 'Upload failed');
+                    if (response.status === 401) {
+                        showStatus('Authentication failed. Please check your GitHub token in Settings.', 'error');
+                        githubToken = null;
+                        localStorage.removeItem('githubToken');
+                        updateUIState();
+                    } else {
+                        throw new Error(errorData.message || 'Upload failed');
+                    }
                 }
                 
             } catch (error) {
@@ -524,6 +776,13 @@
                 }, 5000);
             }
         }
+
+        // Close modal when clicking outside
+        document.getElementById('settingsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSettings();
+            }
+        });
     </script>
 </body>
 </html>
